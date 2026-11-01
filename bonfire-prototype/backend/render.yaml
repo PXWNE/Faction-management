@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: the-bonfire-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    disk:
+      name: bonfire-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: BONFIRE_DB_PATH
+        value: /var/data/bonfire.sqlite3
+      - key: BONFIRE_TOKEN_SECRET
+        generateValue: true
+      - key: BONFIRE_FERNET_KEY
+        sync: false
+      - key: TORN_FACTION_ID
+        sync: false
+      - key: BONFIRE_CORS_ORIGINS
+        sync: false
