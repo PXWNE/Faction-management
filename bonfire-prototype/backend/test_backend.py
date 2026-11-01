@@ -6,6 +6,7 @@ os.environ['BONFIRE_DB_PATH']=TMP.name
 os.environ['BONFIRE_TOKEN_SECRET']='test-secret-'+'x'*48
 os.environ['BONFIRE_FERNET_KEY']=Fernet.generate_key().decode()
 os.environ['TORN_FACTION_ID']='12345'
+os.environ['BONFIRE_BOOTSTRAP_SECRET']='bootstrap-test-secret-'+'z'*48
 from fastapi.testclient import TestClient
 import app
 
@@ -17,9 +18,9 @@ class BackendTests(unittest.TestCase):
  def tearDownClass(cls): cls.client.__exit__(None,None,None)
  def test_full_leadership_workflow(self):
   c=self.client
-  r=c.post('/api/bootstrap',json={'username':'admin','password':'Long-enough-test-password-123'}); self.assertEqual(r.status_code,200,r.text)
+  r=c.post('/api/bootstrap',json={'username':'admin','password':'Long-enough-test-password-123','setup_secret':os.environ['BONFIRE_BOOTSTRAP_SECRET']}); self.assertEqual(r.status_code,200,r.text)
   token=r.json()['token']; h={'Authorization':'Bearer '+token}
-  self.assertEqual(c.post('/api/bootstrap',json={'username':'other','password':'Long-enough-test-password-123'}).status_code,409)
+  self.assertEqual(c.post('/api/bootstrap',json={'username':'other','password':'Long-enough-test-password-123','setup_secret':os.environ['BONFIRE_BOOTSTRAP_SECRET']}).status_code,409)
   r=c.post('/api/users',headers=h,json={'username':'treasurer','password':'Another-long-password-123','roles':['treasurer']}); self.assertEqual(r.status_code,201,r.text)
   login=c.post('/api/auth/login',json={'username':'treasurer','password':'Another-long-password-123'}).json(); th={'Authorization':'Bearer '+login['token']}
   with app.db() as con:

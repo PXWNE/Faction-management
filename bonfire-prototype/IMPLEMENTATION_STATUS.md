@@ -3,7 +3,7 @@
 ## Delivered in this revision
 
 - A separate FastAPI backend under `backend/` with SQLite persistence and Render persistent-disk blueprint.
-- Individual leadership users, hashed passwords, signed sessions, role-checked API operations, and one-time admin bootstrap.
+- Individual leadership users, hashed passwords, signed sessions, role-checked API operations, and one-time admin bootstrap protected by a separate high-entropy setup secret.
 - Encrypted server-side Torn API key storage; key verification checks the key owner's faction ID and required faction selections before sync.
 - Torn roster sync and raw faction giveFunds news ingestion.
 - War and settlement records, draft snapshots, leader approval, immutable approved obligations, and source-readiness gate.

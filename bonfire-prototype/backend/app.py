@@ -22,6 +22,7 @@ DB_PATH = os.getenv('BONFIRE_DB_PATH', os.path.join(APP_DIR, 'bonfire.sqlite3'))
 TOKEN_SECRET = os.getenv('BONFIRE_TOKEN_SECRET', '')
 FERNET_KEY = os.getenv('BONFIRE_FERNET_KEY', '')
 FACTION_ID = os.getenv('TORN_FACTION_ID', '')
+BOOTSTRAP_SECRET = os.getenv('BONFIRE_BOOTSTRAP_SECRET', '')
 TOKEN_TTL = int(os.getenv('BONFIRE_TOKEN_TTL', '43200'))
 
 app = FastAPI(title='The Bonfire API', version='1.0.0')
@@ -120,7 +121,7 @@ def posted_paid(c,war_id,player_id):
     return int(row['n'])
 
 class Login(BaseModel): username:str; password:str
-class Bootstrap(BaseModel): username:str; password:str
+class Bootstrap(BaseModel): username:str=Field(min_length=3,max_length=64); password:str=Field(min_length=12,max_length=256); setup_secret:str=Field(min_length=32,max_length=256)
 class UserCreate(BaseModel): username:str; password:str=Field(min_length=12); roles:list[str]
 class TornKey(BaseModel): key:str=Field(min_length=16,max_length=256)
 class WarIn(BaseModel): id:str; external_id:str|None=None; opponent:str=''; start_at:str|None=None; end_at:str|None=None; status:str='collecting'; income:int=Field(default=0,ge=0); source_state:str='not_synced'; raw:dict=Field(default_factory=dict)
@@ -135,6 +136,10 @@ def health(): return {'ok':True,'service':'bonfire-api','time':now()}
 
 @app.post('/api/bootstrap')
 def bootstrap(body:Bootstrap):
+    if len(BOOTSTRAP_SECRET) < 32:
+        raise HTTPException(503,'Administrator bootstrap is disabled until BONFIRE_BOOTSTRAP_SECRET is configured.')
+    if not hmac.compare_digest(body.setup_secret, BOOTSTRAP_SECRET):
+        raise HTTPException(403,'Invalid administrator setup secret.')
     with db() as c:
         c.execute('BEGIN IMMEDIATE')
         if c.execute('SELECT COUNT(*) n FROM users').fetchone()['n']:

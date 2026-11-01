@@ -17,6 +17,8 @@ services:
         generateValue: true
       - key: BONFIRE_FERNET_KEY
         sync: false
+      - key: BONFIRE_BOOTSTRAP_SECRET
+        sync: false
       - key: TORN_FACTION_ID
         sync: false
       - key: BONFIRE_CORS_ORIGINS
